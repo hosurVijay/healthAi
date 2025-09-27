@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const woundHistorySchema = new mongoose.Schema(
   {
@@ -39,9 +39,17 @@ const woundSchema = new mongoose.Schema(
     woundType: { type: String, trim: true }, // e.g., burn, cut, ulcer
     location: { type: String, trim: true }, // e.g., left leg, right arm
 
+    // ✅ These 2 fields make your controller work
+    isActive: { type: Boolean, default: true },
+    currentStatus: {
+      type: String,
+      enum: ["healing", "stable", "worsening", "critical", "infected"],
+      default: "stable",
+    },
+
     history: [woundHistorySchema], // follow-up images + AI analysis
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Wound", woundSchema);
+export default mongoose.model("Wound", woundSchema);

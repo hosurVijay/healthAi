@@ -1,9 +1,9 @@
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { uploadOnCloudinary } from "../utils/uploadCloudinary.js";
-import { ApiError } from "../utils/ApiError.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary } from "../Utills/cloudinary.js";
+import { ApiError } from "../Utills/ApiError.js";
+import { asyncHandler } from "../Utills/asyncHandler.js";
 
 // Multer storage (save to public/temp first)
 const storage = multer.diskStorage({
@@ -42,18 +42,22 @@ const upload = multer({
 const processUpload = asyncHandler(async (req, res, next) => {
   if (!req.file) throw new ApiError(400, "No file uploaded");
 
-  const result = await uploadOnCloudinary(req.file.path);
+  try {
+    const result = await uploadOnCloudinary(req.file.path);
 
-  // delete temp file
-  fs.unlinkSync(req.file.path);
+    if (!result) throw new ApiError(500, "Cloudinary upload failed");
 
-  if (!result) throw new ApiError(500, "Cloudinary upload failed");
+    // attach Cloudinary info to request
+    req.file.cloudinaryUrl = result.secure_url;
+    req.file.public_id = result.public_id;
 
-  // attach Cloudinary info to request
-  req.file.cloudinaryUrl = result.secure_url;
-  req.file.public_id = result.public_id;
-
-  next();
+    next();
+  } finally {
+    // ✅ cleanup temp file in all cases
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+  }
 });
 
 export { upload, processUpload };

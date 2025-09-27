@@ -34,12 +34,14 @@ const userSchema = new mongoose.Schema(
     // Doctor fields
     specialization: {
       type: String,
+      required: false,
       required: function () {
         return this.role === "doctor";
       },
     },
     licenseNumber: {
       type: String,
+      required: false,
       required: function () {
         return this.role === "doctor";
       },

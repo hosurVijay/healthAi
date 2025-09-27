@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
-import User from "../models/User.js";
-import { ApiError } from "../utils/ApiError.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
+import User from "../Models/user.model.js";
+import { ApiError } from "../Utills/ApiError.js";
+import { asyncHandler } from "../Utills/asyncHandler.js";
 
 // Verify JWT token
 const authenticate = asyncHandler(async (req, res, next) => {
@@ -79,7 +79,7 @@ const authorizePatientAccess = asyncHandler(async (req, res, next) => {
     if (!patient) {
       throw new ApiError(404, "Patient not found.");
     }
-    if (patient.assignedDoctor.toString() !== req.user._id.toString()) {
+    if (patient.assignedDoctor?.toString() !== req.user._id.toString()) {
       throw new ApiError(
         403,
         "Access denied. Patient not assigned to this doctor."

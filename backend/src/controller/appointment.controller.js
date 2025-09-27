@@ -1,11 +1,14 @@
-import Appointment from "../models/Appointment.js";
-import { ApiResponse } from "../utils/ApiResponse.js";
-import { ApiError } from "../utils/ApiError.js";
-import asyncHandler from "../utils/asyncHandler.js";
+// controllers/appointment.controller.js
+import Appointment from "../Models/appointment.model.js";
+import { ApiResponse } from "../Utills/ApiResponses.js";
+import { ApiError } from "../Utills/ApiError.js";
+import { asyncHandler } from "../Utills/asyncHandler.js";
 
-// @desc    Get appointments (doctor sees all, patient sees own)
-// @route   GET /api/appointments
-// @access  Private
+/**
+ * @desc    Get appointments (doctor sees all, patient sees own)
+ * @route   GET /api/appointments
+ * @access  Private
+ */
 export const getAppointments = asyncHandler(async (req, res, next) => {
   const {
     page = 1,
@@ -33,11 +36,10 @@ export const getAppointments = asyncHandler(async (req, res, next) => {
 
   // Upcoming filter
   if (upcoming === "true") {
-    query.appointmentDate = { $gte: new Date() };
     query.status = { $in: ["scheduled", "confirmed"] };
   }
 
-  // Date range filter
+  // Date range filter (optional, but still available if you want to use)
   if (startDate || endDate) {
     query.appointmentDate = {};
     if (startDate) query.appointmentDate.$gte = new Date(startDate);
@@ -48,7 +50,7 @@ export const getAppointments = asyncHandler(async (req, res, next) => {
     .populate("doctor", "name specialization email phone")
     .populate("patient", "name email phone age")
     .populate("relatedWound", "woundType location currentStatus")
-    .sort({ appointmentDate: 1 })
+    .sort({ createdAt: 1 })
     .skip(skip)
     .limit(parseInt(limit));
 
@@ -72,18 +74,27 @@ export const getAppointments = asyncHandler(async (req, res, next) => {
   );
 });
 
-// @desc    Get today's appointments (doctor only)
-// @route   GET /api/appointments/today
-// @access  Private (Doctor only)
+/**
+ * @desc    Get active appointments (doctor only, ignores date)
+ * @route   GET /api/appointments/today
+ * @access  Private (Doctor only)
+ */
 export const getTodaysAppointments = asyncHandler(async (req, res, next) => {
   if (req.user.role !== "doctor") {
-    throw new ApiError(403, "Only doctors can access today's appointments");
+    throw new ApiError(403, "Only doctors can access active appointments");
   }
 
-  const appointments = await Appointment.getTodaysAppointments(req.user._id);
+  const appointments = await Appointment.find({
+    doctor: req.user._id,
+    status: { $in: ["scheduled", "confirmed"] },
+  })
+    .populate("doctor", "name specialization email phone")
+    .populate("patient", "name email phone age")
+    .populate("relatedWound", "woundType location currentStatus")
+    .sort({ createdAt: 1 });
 
-  if (!appointments) {
-    throw new ApiError(404, "No appointments found for today");
+  if (!appointments || appointments.length === 0) {
+    throw new ApiError(404, "No active appointments found");
   }
 
   return res
@@ -92,12 +103,112 @@ export const getTodaysAppointments = asyncHandler(async (req, res, next) => {
       new ApiResponse(
         200,
         { appointments },
-        "Today's appointments fetched successfully"
+        "Active appointments fetched successfully"
       )
     );
 });
 
-const exports = {
-  getAppointments,
-  getTodaysAppointments,
-};
+/**
+ * @desc    Create new appointment (patient books with doctor)
+ * @route   POST /api/appointments
+ * @access  Private (Patient only)
+ */
+export const createAppointment = asyncHandler(async (req, res, next) => {
+  if (req.user.role !== "patient") {
+    throw new ApiError(403, "Only patients can create appointments");
+  }
+
+  const { doctorId, appointmentDate, relatedWound } = req.body;
+
+  if (!doctorId) {
+    throw new ApiError(400, "Doctor ID is required");
+  }
+
+  const appointment = await Appointment.create({
+    doctor: doctorId,
+    patient: req.user._id,
+    appointmentDate: appointmentDate || null, // optional now
+    relatedWound: relatedWound || null,
+    status: "scheduled",
+  });
+
+  return res
+    .status(201)
+    .json(
+      new ApiResponse(201, appointment, "Appointment created successfully")
+    );
+});
+
+/**
+ * @desc    Update appointment (doctor confirms/reschedules/cancels)
+ * @route   PATCH /api/appointments/:id
+ * @access  Private (Doctor only)
+ */
+export const updateAppointment = asyncHandler(async (req, res, next) => {
+  if (req.user.role !== "doctor") {
+    throw new ApiError(403, "Only doctors can update appointments");
+  }
+
+  const { id } = req.params;
+  const { status, appointmentDate } = req.body;
+
+  const appointment = await Appointment.findById(id);
+  if (!appointment) throw new ApiError(404, "Appointment not found");
+
+  // Ensure doctor owns this appointment
+  if (appointment.doctor.toString() !== req.user._id.toString()) {
+    throw new ApiError(
+      403,
+      "You are not authorized to update this appointment"
+    );
+  }
+
+  if (status) appointment.status = status;
+  if (appointmentDate) appointment.appointmentDate = appointmentDate;
+
+  await appointment.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, appointment, "Appointment updated successfully")
+    );
+});
+
+/**
+ * @desc    Cancel/Delete appointment
+ * @route   DELETE /api/appointments/:id
+ * @access  Private (Patient can cancel own, Doctor can cancel own)
+ */
+export const deleteAppointment = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
+
+  const appointment = await Appointment.findById(id);
+  if (!appointment) throw new ApiError(404, "Appointment not found");
+
+  // Check role/ownership
+  if (
+    req.user.role === "patient" &&
+    appointment.patient.toString() !== req.user._id.toString()
+  ) {
+    throw new ApiError(
+      403,
+      "You are not authorized to cancel this appointment"
+    );
+  }
+  if (
+    req.user.role === "doctor" &&
+    appointment.doctor.toString() !== req.user._id.toString()
+  ) {
+    throw new ApiError(
+      403,
+      "You are not authorized to cancel this appointment"
+    );
+  }
+
+  await appointment.deleteOne();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Appointment cancelled successfully"));
+});

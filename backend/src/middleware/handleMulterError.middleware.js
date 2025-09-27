@@ -1,5 +1,5 @@
 import multer from "multer";
-import { ApiError } from "../utils/ApiError.js";
+import { ApiError } from "../Utills/ApiError.js";
 
 // Multer error handler middleware
 const handleMulterError = (error, req, res, next) => {
