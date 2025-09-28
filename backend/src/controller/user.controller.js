@@ -1,4 +1,3 @@
-// controllers/userController.js
 import User from "../Models/user.model.js";
 import Wound from "../Models/wound.model.js";
 import Appointment from "../Models/appointment.model.js";
@@ -9,11 +8,6 @@ import { validationResult } from "express-validator";
 import { asyncHandler } from "../Utills/asyncHandler.js";
 import { uploadOnCloudinary } from "../Utills/cloudinary.js";
 
-// ======================================================
-// @desc    Get all active doctors
-// @route   GET /api/users/doctors
-// @access  Private
-// ======================================================
 export const getDoctors = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20, search, specialization } = req.query;
   const skip = (page - 1) * limit;
@@ -53,11 +47,6 @@ export const getDoctors = asyncHandler(async (req, res) => {
   );
 });
 
-// ======================================================
-// @desc    Get patients assigned to doctor
-// @route   GET /api/users/patients
-// @access  Private (Doctor only)
-// ======================================================
 export const getPatients = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20, search } = req.query;
   const skip = (page - 1) * limit;
@@ -114,11 +103,6 @@ export const getPatients = asyncHandler(async (req, res) => {
   );
 });
 
-// ======================================================
-// @desc    Update user profile
-// @route   PUT /api/users/:userId
-// @access  Private
-// ======================================================
 export const updateProfile = asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -167,11 +151,6 @@ export const updateProfile = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { user }, "Profile updated successfully"));
 });
 
-// ======================================================
-// @desc    Assign patient to doctor
-// @route   POST /api/users/assign
-// @access  Private (Doctor only)
-// ======================================================
 export const assignPatient = asyncHandler(async (req, res) => {
   if (req.user.role !== "doctor") {
     throw new ApiError(403, "Only doctors can assign patients");
@@ -192,11 +171,6 @@ export const assignPatient = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { patient }, "Patient assigned successfully"));
 });
 
-// ======================================================
-// @desc    Unassign patient from doctor
-// @route   POST /api/users/unassign
-// @access  Private (Doctor only)
-// ======================================================
 export const unassignPatient = asyncHandler(async (req, res) => {
   if (req.user.role !== "doctor") {
     throw new ApiError(403, "Only doctors can unassign patients");
@@ -221,11 +195,6 @@ export const unassignPatient = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { patient }, "Patient unassigned successfully"));
 });
 
-// ======================================================
-// @desc    Dashboard stats for doctor
-// @route   GET /api/users/dashboard
-// @access  Private (Doctor only)
-// ======================================================
 export const dashboardStats = asyncHandler(async (req, res) => {
   if (req.user.role !== "doctor") {
     throw new ApiError(403, "Only doctors can view dashboard stats");
@@ -269,11 +238,6 @@ export const dashboardStats = asyncHandler(async (req, res) => {
   );
 });
 
-// ======================================================
-// @desc    Search users (doctor sees own patients, admin sees all)
-// @route   GET /api/users/search
-// @access  Private
-// ======================================================
 export const searchUsers = asyncHandler(async (req, res) => {
   const { role, search } = req.query;
   let query = { isActive: true };
@@ -297,11 +261,6 @@ export const searchUsers = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, { users }, "Users fetched successfully"));
 });
 
-// ======================================================
-// @desc    Get user by ID
-// @route   GET /api/users/:id
-// @access  Private
-// ======================================================
 export const getUserById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const user = await User.findById(id)

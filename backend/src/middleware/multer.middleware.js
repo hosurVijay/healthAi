@@ -17,7 +17,6 @@ const storage = multer.diskStorage({
   },
 });
 
-// File filter for images
 const imageFilter = (req, file, cb) => {
   const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
   if (!allowedTypes.includes(file.mimetype)) {
@@ -38,7 +37,6 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
 });
 
-// Middleware: upload → Cloudinary → cleanup
 const processUpload = asyncHandler(async (req, res, next) => {
   if (!req.file) throw new ApiError(400, "No file uploaded");
 

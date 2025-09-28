@@ -6,7 +6,6 @@ import { createWound, addWoundImage } from "../controller/wound.controller.js";
 
 const router = express.Router();
 
-// ✅ Anyone authenticated (doctor or patient) can create a wound with first image
 router.post(
   "/",
   authenticate,
@@ -15,7 +14,6 @@ router.post(
   createWound
 );
 
-// ✅ Anyone authenticated (doctor or patient) can add follow-up wound image
 router.post(
   "/:woundId/images",
   authenticate,

@@ -4,11 +4,6 @@ import { ApiResponse } from "../Utills/ApiResponses.js";
 import { ApiError } from "../Utills/ApiError.js";
 import { asyncHandler } from "../Utills/asyncHandler.js";
 
-/**
- * @desc    Get appointments (doctor sees all, patient sees own)
- * @route   GET /api/appointments
- * @access  Private
- */
 export const getAppointments = asyncHandler(async (req, res, next) => {
   const {
     page = 1,
@@ -29,17 +24,13 @@ export const getAppointments = asyncHandler(async (req, res, next) => {
     query.patient = req.user._id;
   }
 
-  // Status filter
   if (status && status !== "all") {
     query.status = status;
   }
 
-  // Upcoming filter
   if (upcoming === "true") {
     query.status = { $in: ["scheduled", "confirmed"] };
   }
-
-  // Date range filter (optional, but still available if you want to use)
   if (startDate || endDate) {
     query.appointmentDate = {};
     if (startDate) query.appointmentDate.$gte = new Date(startDate);
@@ -74,11 +65,6 @@ export const getAppointments = asyncHandler(async (req, res, next) => {
   );
 });
 
-/**
- * @desc    Get active appointments (doctor only, ignores date)
- * @route   GET /api/appointments/today
- * @access  Private (Doctor only)
- */
 export const getTodaysAppointments = asyncHandler(async (req, res, next) => {
   if (req.user.role !== "doctor") {
     throw new ApiError(403, "Only doctors can access active appointments");
@@ -108,11 +94,6 @@ export const getTodaysAppointments = asyncHandler(async (req, res, next) => {
     );
 });
 
-/**
- * @desc    Create new appointment (patient books with doctor)
- * @route   POST /api/appointments
- * @access  Private (Patient only)
- */
 export const createAppointment = asyncHandler(async (req, res, next) => {
   if (req.user.role !== "patient") {
     throw new ApiError(403, "Only patients can create appointments");
@@ -127,8 +108,7 @@ export const createAppointment = asyncHandler(async (req, res, next) => {
   const appointment = await Appointment.create({
     doctor: doctorId,
     patient: req.user._id,
-    appointmentDate: appointmentDate || null, // optional now
-    relatedWound: relatedWound || null,
+    appointmentDate: appointmentDate || null,
     status: "scheduled",
   });
 
@@ -139,11 +119,6 @@ export const createAppointment = asyncHandler(async (req, res, next) => {
     );
 });
 
-/**
- * @desc    Update appointment (doctor confirms/reschedules/cancels)
- * @route   PATCH /api/appointments/:id
- * @access  Private (Doctor only)
- */
 export const updateAppointment = asyncHandler(async (req, res, next) => {
   if (req.user.role !== "doctor") {
     throw new ApiError(403, "Only doctors can update appointments");
@@ -155,7 +130,6 @@ export const updateAppointment = asyncHandler(async (req, res, next) => {
   const appointment = await Appointment.findById(id);
   if (!appointment) throw new ApiError(404, "Appointment not found");
 
-  // Ensure doctor owns this appointment
   if (appointment.doctor.toString() !== req.user._id.toString()) {
     throw new ApiError(
       403,
@@ -175,11 +149,6 @@ export const updateAppointment = asyncHandler(async (req, res, next) => {
     );
 });
 
-/**
- * @desc    Cancel/Delete appointment
- * @route   DELETE /api/appointments/:id
- * @access  Private (Patient can cancel own, Doctor can cancel own)
- */
 export const deleteAppointment = asyncHandler(async (req, res, next) => {
   const { id } = req.params;
 

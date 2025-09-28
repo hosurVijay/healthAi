@@ -3,7 +3,6 @@ import { ApiResponse } from "../Utills/ApiResponses.js";
 import { ApiError } from "../Utills/ApiError.js";
 import { asyncHandler } from "../Utills/asyncHandler.js";
 
-// Create wound
 export const createWound = asyncHandler(async (req, res) => {
   if (!req.file?.cloudinaryUrl) {
     throw new ApiError(400, "Wound reference image is required");

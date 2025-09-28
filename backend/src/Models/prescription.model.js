@@ -3,10 +3,10 @@ import mongoose from "mongoose";
 const medicationSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    dosage: { type: String, required: true }, // e.g., "500mg"
-    frequency: { type: String, required: true }, // e.g., "2 times/day"
-    duration: { type: String }, // e.g., "5 days"
-    instructions: { type: String }, // doctor notes
+    dosage: { type: String, required: true },
+    frequency: { type: String, required: true },
+    duration: { type: String },
+    instructions: { type: String },
   },
   { _id: false }
 );
@@ -14,8 +14,8 @@ const medicationSchema = new mongoose.Schema(
 const modificationSchema = new mongoose.Schema(
   {
     modifiedAt: { type: Date, default: Date.now },
-    modifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // doctor/admin
-    changes: { type: String }, // summary of changes
+    modifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    changes: { type: String },
   },
   { _id: false }
 );

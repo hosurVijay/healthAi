@@ -15,20 +15,15 @@ import { upload } from "../middleware/multer.middleware.js";
 
 const router = express.Router();
 
-// Doctor listing
 router.get("/doctors", authenticate, getDoctors);
 
-// Patients assigned to a doctor
 router.get("/patients", authenticate, authorize("doctor"), getPatients);
 
-// Assign / Unassign patients (Doctor only)
 router.post("/assign", authenticate, authorize("doctor"), assignPatient);
 router.post("/unassign", authenticate, authorize("doctor"), unassignPatient);
 
-// Dashboard stats (Doctor only)
 router.get("/dashboard", authenticate, authorize("doctor"), dashboardStats);
 
-// Search users (Doctor = own patients, Admin = all)
 router.get("/search", authenticate, searchUsers);
 
 // Get user by ID

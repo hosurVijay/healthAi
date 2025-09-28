@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const woundHistorySchema = new mongoose.Schema(
   {
-    imageUrl: { type: String, required: true }, // stored in Cloudinary
+    imageUrl: { type: String, required: true },
     uploadedAt: { type: Date, default: Date.now },
     analysisResult: {
       healingStatus: {
@@ -15,8 +15,8 @@ const woundHistorySchema = new mongoose.Schema(
         enum: ["low", "medium", "high", "critical"],
         default: "low",
       },
-      woundSize: { type: Number }, // in mm² or cm²
-      notes: { type: String, maxlength: 500 }, // AI or doctor notes
+      woundSize: { type: Number },
+      notes: { type: String, maxlength: 500 },
     },
   },
   { _id: false }
@@ -35,11 +35,10 @@ const woundSchema = new mongoose.Schema(
       required: true,
     },
 
-    referenceImage: { type: String, required: true }, // first image uploaded
-    woundType: { type: String, trim: true }, // e.g., burn, cut, ulcer
-    location: { type: String, trim: true }, // e.g., left leg, right arm
+    referenceImage: { type: String, required: true },
+    woundType: { type: String, trim: true },
+    location: { type: String, trim: true },
 
-    // ✅ These 2 fields make your controller work
     isActive: { type: Boolean, default: true },
     currentStatus: {
       type: String,
@@ -47,7 +46,7 @@ const woundSchema = new mongoose.Schema(
       default: "stable",
     },
 
-    history: [woundHistorySchema], // follow-up images + AI analysis
+    history: [woundHistorySchema],
   },
   { timestamps: true }
 );

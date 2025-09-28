@@ -1,4 +1,3 @@
-// src/seedDb/seedDb.js
 import { fileURLToPath } from "url";
 import path from "path";
 import dotenv from "dotenv";
@@ -8,14 +7,11 @@ import fs from "fs";
 import connectDB from "../db/index.js";
 import User from "../Models/user.model.js";
 
-// Fix __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env from project root
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-// Create uploads directories
 const createUploadDirectories = () => {
   const dirs = [
     "public/temp",
@@ -32,32 +28,29 @@ const createUploadDirectories = () => {
   });
 };
 
-// Seed function
 const seedDatabase = async () => {
   try {
     console.log("🚀 Connecting to MongoDB...");
     await connectDB();
     console.log("✅ MongoDB connected!");
 
-    // Create required folders
     createUploadDirectories();
 
-    // Check admin doctor
     let admin = await User.findOne({ email: "admin@woundhealing.com" });
     if (!admin) {
       admin = await User.create({
         name: "Dr. Admin",
         email: "admin@woundhealing.com",
-        password: "admin123", // auto-hashed via pre-save hook
+        password: "admin123",
         role: "doctor",
         phone: "9999999999",
         specialization: "General Surgery",
         licenseNumber: "ADMIN001",
         isActive: true,
       });
-      console.log("✅ Admin doctor created!");
+      console.log("Admin doctor created!");
     } else {
-      console.log("ℹ️ Admin doctor already exists.");
+      console.log("Admin doctor already exists.");
     }
 
     // Check sample patient
@@ -74,14 +67,14 @@ const seedDatabase = async () => {
         medicalHistory: "No significant medical history",
         isActive: true,
       });
-      console.log("✅ Sample patient created!");
+      console.log("Sample patient created!");
     } else {
-      console.log("ℹ️ Sample patient already exists.");
+      console.log(" Sample patient already exists.");
     }
 
-    console.log("\n🎉 Database seeding completed successfully!");
+    console.log("Database seeding completed successfully!");
   } catch (error) {
-    console.error("❌ Seeding failed:", error.message);
+    console.error(" Seeding failed:", error.message);
   } finally {
     await mongoose.disconnect();
     console.log("🔌 Disconnected from DB.");

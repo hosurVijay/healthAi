@@ -20,10 +20,8 @@ router.get(
   getActivePrescriptions
 );
 
-// Doctor: Create prescription
 router.post("/", authenticate, authorize("doctor"), createPrescription);
 
-// Doctor + Patient: Get prescription details
 router.get("/:prescriptionId", authenticate, getPrescriptionById);
 
 export default router;

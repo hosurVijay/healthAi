@@ -4,21 +4,21 @@ const notificationSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // doctor or patient receiving the notification
+      ref: "User",
       required: true,
     },
     sender: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // who triggered it (patient or doctor)
+      ref: "User",
     },
     type: {
       type: String,
       enum: [
-        "wound_update", // new wound image uploaded
-        "wound_growth", // AI detected worsening
-        "prescription_added", // doctor prescribed medicine
-        "follow_up", // reminder for check-up
-        "general", // any other
+        "wound_update",
+        "wound_growth",
+        "prescription_added",
+        "follow_up",
+        "general",
       ],
       required: true,
     },
@@ -28,11 +28,11 @@ const notificationSchema = new mongoose.Schema(
     },
     relatedWound: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Wound", // link to wound if applicable
+      ref: "Wound",
     },
     relatedPrescription: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Prescription", // link to prescription if applicable
+      ref: "Prescription",
     },
     isRead: {
       type: Boolean,
